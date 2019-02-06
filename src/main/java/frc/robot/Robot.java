@@ -25,7 +25,6 @@ import edu.wpi.first.wpilibj.SpeedControllerGroup;
 public class Robot extends TimedRobot {
 
   // motors
-  private DifferentialDrive m_myRobot; // Note this is only used so that the old chassis can be driven by Spark
   private WPI_TalonSRX m_intakemotor;
   private WPI_TalonSRX m_lifter;
   private WPI_TalonSRX m_extender;
@@ -46,6 +45,10 @@ public class Robot extends TimedRobot {
 
   double slowfast = 1;
   int slowFastLock = 0;
+
+  // Note this is only used so that the old chassis can be driven by Spark
+  private DifferentialDrive m_myRobot;
+
   // This is the real drive train
   WPI_TalonSRX m_frontLeft = new WPI_TalonSRX(8);
   WPI_TalonSRX m_rearLeft = new WPI_TalonSRX(9);
@@ -179,6 +182,7 @@ public class Robot extends TimedRobot {
     boolean pressureSwitch = m_c.getPressureSwitchValue();
     double current = m_c.getCompressorCurrent();
 
+    // This is just an experiment with a sensor
     int raw = m_distanceLight.getValue();
     System.out.print(raw);
     System.out.print("* *");
