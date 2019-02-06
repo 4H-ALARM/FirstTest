@@ -40,6 +40,8 @@ public class Robot extends TimedRobot {
 
   // detectors
   private Counter m_ballInDetection = new Counter(0);
+  private Counter m_extenderOutDetection = new Counter(1);
+  private Counter m_extenderInDetection = new Counter(2);
   private AnalogInput m_distanceLight = new AnalogInput(1);
 
   double slowfast = 1;
@@ -79,10 +81,24 @@ public class Robot extends TimedRobot {
 
   // extender
   private void extender() {
+    int moveOut = 1;
+    int moveIn = 1;
+
+    // see if we have hit travel limits
+    if (m_extenderOutDetection.get() > 0) {
+      moveOut = 0; // the max extension struck at least once since last loop - so stop the motors
+      m_extenderOutDetection.reset();
+    }
+    if (m_extenderInDetection.get() > 0) {
+      moveIn = 0; // the minimum extension was struck at least once since last loop - so stop the
+                  // motors
+      m_extenderInDetection.reset();
+    }
+
     if (m_manipStick.getRawButton(6)) {
-      m_extender.set(.8);
+      m_extender.set(.8 * moveOut);
     } else if (m_manipStick.getRawButton(7)) {
-      m_extender.set(-.8);
+      m_extender.set(-.8 * moveIn);
     } else {
       m_extender.set(0);
     }
@@ -106,13 +122,13 @@ public class Robot extends TimedRobot {
     int move = 1;
 
     if (m_ballInDetection.get() > 0) {
-      move = 0; // th intake was struck at least once since last loop - so stop the motors
+      move = 0; // the intake was struck at least once since last loop - so stop the motors
       m_ballInDetection.reset();
     }
     if (m_manipStick.getButton(ButtonType.kTrigger)) {
       m_intakemotor.set(.8 * move);
     } else if (m_manipStick.getButton(ButtonType.kTop)) {
-      m_intakemotor.set(-.8 * move);
+      m_intakemotor.set(-.8);
     } else {
       m_intakemotor.set(0);
     }
@@ -124,12 +140,17 @@ public class Robot extends TimedRobot {
     // Note this is only used so that the old chassis can be driven by Sparks
     m_myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
 
-    m_manipStick = new Joystick(2);
-    m_intakemotor = new WPI_TalonSRX(5);
+    // create robot components
     m_driver = new XboxController(0);
-    m_lifter = new WPI_TalonSRX(11);
+    m_manipStick = new Joystick(2);
+
+    m_intakemotor = new WPI_TalonSRX(5);
     m_extender = new WPI_TalonSRX(10);
+    m_lifter = new WPI_TalonSRX(11);
+
     m_c = new Compressor(1);
+
+    // initialize subsystems and sensors
     m_c.setClosedLoopControl(true);
 
     m_distanceLight.setOversampleBits(4);
