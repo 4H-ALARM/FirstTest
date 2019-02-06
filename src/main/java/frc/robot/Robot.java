@@ -28,6 +28,7 @@ public class Robot extends TimedRobot {
   private DifferentialDrive m_myRobot; // Note this is only used so that the old chassis can be driven by Spark
   private WPI_TalonSRX m_intakemotor;
   private WPI_TalonSRX m_lifter;
+  private WPI_TalonSRX m_extender;
 
   // controlers
   private Joystick m_manipStick;
@@ -76,6 +77,17 @@ public class Robot extends TimedRobot {
     }
   }
 
+  // extender
+  private void extender() {
+    if (m_manipStick.getRawButton(6)) {
+      m_extender.set(.8);
+    } else if (m_manipStick.getRawButton(7)) {
+      m_extender.set(-.8);
+    } else {
+      m_extender.set(0);
+    }
+  }
+
   // slowfast
   private void slowFast() {
     if (m_driver.getAButton()) {
@@ -116,6 +128,7 @@ public class Robot extends TimedRobot {
     m_intakemotor = new WPI_TalonSRX(5);
     m_driver = new XboxController(0);
     m_lifter = new WPI_TalonSRX(11);
+    m_extender = new WPI_TalonSRX(10);
     m_c = new Compressor(1);
     m_c.setClosedLoopControl(true);
 
@@ -132,9 +145,13 @@ public class Robot extends TimedRobot {
     // This is the real drive train
     m_4motorDrive.tankDrive(m_driver.getY(Hand.kLeft) * slowfast, m_driver.getY(Hand.kRight) * slowfast);
 
+    // Operate the manipulator parts
     ballGrabber();
     ballhandle();
     lifter();
+    extender();
+
+    // Set scaling factor for drive
     slowFast();
 
     boolean enabled = m_c.enabled();
