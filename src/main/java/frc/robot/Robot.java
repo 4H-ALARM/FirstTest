@@ -166,7 +166,7 @@ public class Robot extends TimedRobot {
 
   // Use left/right triggers to control left/right wheel speed
   // Use left/right bumper to reverse/forward
-  private double findSpeedTank(Hand hand) {
+  private double findSpeedTrigger(Hand hand) {
     double triggerValue;
     if (m_driver.getBumper(hand)) {
       triggerValue = -1;
@@ -222,10 +222,10 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     // Note this is only used so that the old chassis can be driven by Sparkd
     // findSpeedJoystick to use joystick
-    // findSpeedTank to use triggers
-    m_myRobot.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
+    // findSpeedTrigger to use triggers
+    m_myRobot.tankDrive(findSpeedTrigger(Hand.kLeft), findSpeedTrigger((Hand.kRight)));
     // This is the real drive train
-    m_4motorDrive.tankDrive(findSpeedTank(Hand.kLeft), findSpeedTank((Hand.kRight)));
+    m_4motorDrive.tankDrive(findSpeedTrigger(Hand.kLeft), findSpeedTrigger((Hand.kRight)));
 
     SmartDashboard.putNumber("Lift Up Limit", m_liftUpLimit.getValue());
     SmartDashboard.putNumber("Ball Detection", m_ballDetection.getValue());
@@ -233,8 +233,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Extend Out Limit", m_extendOutLimit.getValue());
 
     // Set to appropriate speed function
-    SmartDashboard.putNumber("Left Speed", findSpeedJoystick(Hand.kLeft));
-    SmartDashboard.putNumber("Right Speed", findSpeedJoystick(Hand.kRight));
+    SmartDashboard.putNumber("Left Speed", findSpeedTrigger(Hand.kLeft));
+    SmartDashboard.putNumber("Right Speed", findSpeedTrigger(Hand.kRight));
 
     // Operate the manipulator parts
     ballGrabber();
