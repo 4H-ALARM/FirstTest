@@ -21,8 +21,19 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.Joystick.ButtonType;
 import edu.wpi.first.wpilibj.drive.*;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.smartdashboard.*;
 
 public class Robot extends TimedRobot {
+  // constants
+  private int k_liftUpLimit = 3000;
+  private int K_liftDownLimit = 3000;
+
+  private int k_ballDetection = 3000;
+
+  private int k_lineDetection = 3000;
+
+  private int k_extendOutLimit = 3000;
+  private int K_extendInLimit = 3000;
 
   // motors
   private WPI_TalonSRX m_intakemotor;
@@ -41,7 +52,11 @@ public class Robot extends TimedRobot {
   private Counter m_ballInDetection = new Counter(0);
   private Counter m_extenderOutDetection = new Counter(1);
   private Counter m_extenderInDetection = new Counter(2);
-  private AnalogInput m_distanceLight = new AnalogInput(1);
+  private AnalogInput m_liftUpLimit = new AnalogInput(0);
+  private AnalogInput m_ballDetection = new AnalogInput(1);
+  private AnalogInput m_lineDetection = new AnalogInput(2);
+  private AnalogInput m_extendOutLimit = new AnalogInput(3);
+  // private AnalogInput m_extendInLimit = new AnalogInput(1);
 
   double slowfast = 1;
   int slowFastLock = 0;
@@ -62,6 +77,7 @@ public class Robot extends TimedRobot {
 
   // ballGrabber
   private void ballGrabber() {
+
     if (m_manipStick.getRawButton(1)) {
       m_ballGrab.set(DoubleSolenoid.Value.kReverse);
     } else if (m_manipStick.getRawButton(2)) {
@@ -73,10 +89,22 @@ public class Robot extends TimedRobot {
 
   // lifter
   private void lifter() {
+    int moveUp = 1;
+    int moveDown = 1;
+
+    // see if we have hit travel limits
+    if (m_liftUpLimit.getValue() > k_liftUpLimit) {
+      moveUp = 0; // the max extension struck at least once since last loop - so stop the motors
+    }
+    if (m_liftUpLimit.getValue() > K_liftDownLimit) {
+      moveDown = 0; // the minimum extension was struck at least once since last loop - so stop the
+      // motors
+    }
+
     if (m_manipStick.getRawButton(4)) {
-      m_lifter.set(.8);
+      m_lifter.set(.8 * moveUp);
     } else if (m_manipStick.getRawButton(5)) {
-      m_lifter.set(-.8);
+      m_lifter.set(-.8 * moveDown);
     } else {
       m_lifter.set(0);
     }
@@ -88,7 +116,7 @@ public class Robot extends TimedRobot {
     int moveIn = 1;
 
     // see if we have hit travel limits
-    if (m_extenderOutDetection.get() > 0) {
+    if (m_extendOutLimit.getValue() > k_extendOutLimit) {
       moveOut = 0; // the max extension struck at least once since last loop - so stop the motors
       m_extenderOutDetection.reset();
     }
@@ -124,9 +152,8 @@ public class Robot extends TimedRobot {
   private void ballhandle() {
     int move = 1;
 
-    if (m_ballInDetection.get() > 0) {
+    if (m_ballDetection.getValue() > k_ballDetection) {
       move = 0; // the intake was struck at least once since last loop - so stop the motors
-      m_ballInDetection.reset();
     }
     if (m_manipStick.getButton(ButtonType.kTrigger)) {
       m_intakemotor.set(.8 * move);
@@ -135,6 +162,22 @@ public class Robot extends TimedRobot {
     } else {
       m_intakemotor.set(0);
     }
+  }
+
+  // Use left/right triggers to control left/right wheel speed
+  // Use left/right bumper to reverse/forward
+  private double findSpeedTank(Hand hand) {
+    double triggerValue;
+    if (m_driver.getBumper(hand)) {
+      triggerValue = -1;
+    } else {
+      triggerValue = 1;
+    }
+    return m_driver.getTriggerAxis(hand) * slowfast * triggerValue;
+  }
+
+  private double findSpeedJoystick(Hand hand) {
+    return (m_driver.getY(hand) * slowfast) * -1;
   }
 
   // classes
@@ -156,18 +199,42 @@ public class Robot extends TimedRobot {
     // initialize subsystems and sensors
     m_c.setClosedLoopControl(true);
 
-    m_distanceLight.setOversampleBits(4);
-    m_distanceLight.setAverageBits(2);
-    m_distanceLight.setGlobalSampleRate(62500);
+    m_liftUpLimit.setOversampleBits(4);
+    m_liftUpLimit.setAverageBits(2);
+    m_liftUpLimit.setGlobalSampleRate(62500);
+
+    m_ballDetection.setOversampleBits(4);
+    m_ballDetection.setAverageBits(2);
+    m_ballDetection.setGlobalSampleRate(62500);
+
+    m_lineDetection.setOversampleBits(4);
+    m_lineDetection.setAverageBits(2);
+    m_lineDetection.setGlobalSampleRate(62500);
+
+    m_extendOutLimit.setOversampleBits(4);
+    m_extendOutLimit.setAverageBits(2);
+    m_extendOutLimit.setGlobalSampleRate(62500);
+
   }
 
   // drive/manip
   @Override
   public void teleopPeriodic() {
     // Note this is only used so that the old chassis can be driven by Sparkd
-    m_myRobot.tankDrive(m_driver.getY(Hand.kLeft) * slowfast, m_driver.getY(Hand.kRight) * slowfast);
+    // findSpeedJoystick to use joystick
+    // findSpeedTank to use triggers
+    m_myRobot.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
     // This is the real drive train
-    m_4motorDrive.tankDrive(m_driver.getY(Hand.kLeft) * slowfast, m_driver.getY(Hand.kRight) * slowfast);
+    m_4motorDrive.tankDrive(findSpeedTank(Hand.kLeft), findSpeedTank((Hand.kRight)));
+
+    SmartDashboard.putNumber("Lift Up Limit", m_liftUpLimit.getValue());
+    SmartDashboard.putNumber("Ball Detection", m_ballDetection.getValue());
+    SmartDashboard.putNumber("Line Detection", m_lineDetection.getValue());
+    SmartDashboard.putNumber("Extend Out Limit", m_extendOutLimit.getValue());
+
+    // Set to appropriate speed function
+    SmartDashboard.putNumber("Left Speed", findSpeedJoystick(Hand.kLeft));
+    SmartDashboard.putNumber("Right Speed", findSpeedJoystick(Hand.kRight));
 
     // Operate the manipulator parts
     ballGrabber();
@@ -183,9 +250,5 @@ public class Robot extends TimedRobot {
     double current = m_c.getCompressorCurrent();
 
     // This is just an experiment with a sensor
-    int raw = m_distanceLight.getValue();
-    System.out.print(raw);
-    System.out.print("* *");
-
   }
 }
