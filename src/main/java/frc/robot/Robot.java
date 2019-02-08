@@ -25,15 +25,17 @@ import edu.wpi.first.wpilibj.smartdashboard.*;
 
 public class Robot extends TimedRobot {
   // constants
-  private int k_liftUpLimit = 3000;
-  private int K_liftDownLimit = 3000;
+  private int k_liftUpLimit = 0;
+  private int K_liftDownLimit = 0;
 
-  private int k_ballDetection = 3000;
+  private int k_ballDetection = 0;
 
-  private int k_lineDetection = 3000;
+  private int k_lineDetection = 0;
 
-  private int k_extendOutLimit = 3000;
-  private int K_extendInLimit = 3000;
+  private int k_extendOutLimit = 0;
+  private int K_extendInLimit = 0;
+
+  private boolean driveModeTank = false; // Change this to true to select tank steering
 
   // motors
   private WPI_TalonSRX m_intakemotor;
@@ -49,17 +51,14 @@ public class Robot extends TimedRobot {
   private DoubleSolenoid m_ballGrab = new DoubleSolenoid(1, 2);
 
   // detectors
-  private Counter m_ballInDetection = new Counter(0);
-  private Counter m_extenderOutDetection = new Counter(1);
-  private Counter m_extenderInDetection = new Counter(2);
-  private AnalogInput m_liftUpLimit = new AnalogInput(0);
-  private AnalogInput m_ballDetection = new AnalogInput(1);
-  private AnalogInput m_lineDetection = new AnalogInput(2);
-  private AnalogInput m_extendOutLimit = new AnalogInput(3);
-  // private AnalogInput m_extendInLimit = new AnalogInput(1);
-
-  double slowfast = 1;
-  int slowFastLock = 0;
+  // switches to detect ball handler extension limits
+  private Counter m_extenderOutDetection = new Counter(0);
+  private Counter m_extenderInDetection = new Counter(1);
+  // Using optical sensors as digital inputs
+  private Counter m_liftUpLimitOpticalSwitch = new Counter(2);
+  private Counter m_liftDownOpticalLimit = new Counter(3);
+  private Counter m_ballDetectionOpticalSwitch = new Counter(4);
+  private Counter m_lineDetectionOpticalSwitch = new Counter(5);
 
   // Note this is only used so that the old chassis can be driven by Spark
   private DifferentialDrive m_myRobot;
@@ -72,6 +71,10 @@ public class Robot extends TimedRobot {
   WPI_TalonSRX m_rearRight = new WPI_TalonSRX(7);
   SpeedControllerGroup m_right = new SpeedControllerGroup(m_frontRight, m_rearRight);
   DifferentialDrive m_4motorDrive = new DifferentialDrive(m_left, m_right);
+
+  // class data
+  double slowfast = 1;
+  int slowFastLock = 0;
 
   // method definitions //\\//\\//\\//\\
 
@@ -93,12 +96,14 @@ public class Robot extends TimedRobot {
     int moveDown = 1;
 
     // see if we have hit travel limits
-    if (m_liftUpLimit.getValue() > k_liftUpLimit) {
+    if (m_liftUpLimitOpticalSwitch.get() > k_liftUpLimit) {
       moveUp = 0; // the max extension struck at least once since last loop - so stop the motors
+      m_liftUpLimitOpticalSwitch.reset();
     }
-    if (m_liftUpLimit.getValue() > K_liftDownLimit) {
+    if (m_liftDownOpticalLimit.get() > K_liftDownLimit) {
       moveDown = 0; // the minimum extension was struck at least once since last loop - so stop the
       // motors
+      m_liftDownOpticalLimit.reset();
     }
 
     if (m_manipStick.getRawButton(4)) {
@@ -116,11 +121,11 @@ public class Robot extends TimedRobot {
     int moveIn = 1;
 
     // see if we have hit travel limits
-    if (m_extendOutLimit.getValue() > k_extendOutLimit) {
+    if (m_extenderOutDetection.get() > k_extendOutLimit) {
       moveOut = 0; // the max extension struck at least once since last loop - so stop the motors
       m_extenderOutDetection.reset();
     }
-    if (m_extenderInDetection.get() > 0) {
+    if (m_extenderInDetection.get() > K_extendInLimit) {
       moveIn = 0; // the minimum extension was struck at least once since last loop - so stop the
                   // motors
       m_extenderInDetection.reset();
@@ -152,8 +157,9 @@ public class Robot extends TimedRobot {
   private void ballhandle() {
     int move = 1;
 
-    if (m_ballDetection.getValue() > k_ballDetection) {
+    if (m_ballDetectionOpticalSwitch.get() > k_ballDetection) {
       move = 0; // the intake was struck at least once since last loop - so stop the motors
+      m_ballDetectionOpticalSwitch.reset();
     }
     if (m_manipStick.getButton(ButtonType.kTrigger)) {
       m_intakemotor.set(.8 * move);
@@ -162,6 +168,22 @@ public class Robot extends TimedRobot {
     } else {
       m_intakemotor.set(0);
     }
+  }
+
+  private void driveStationUpdate() {
+    // report limit detections
+    SmartDashboard.putNumber("Ball Detection", m_ballDetectionOpticalSwitch.get());
+    SmartDashboard.putNumber("Line Detection", m_lineDetectionOpticalSwitch.get());
+
+    SmartDashboard.putNumber("Lift Up Limit", m_liftUpLimitOpticalSwitch.get());
+    SmartDashboard.putNumber("Lift Down Limit", m_liftDownOpticalLimit.get());
+
+    SmartDashboard.putNumber("Extend Out Limit", m_extenderOutDetection.get());
+    SmartDashboard.putNumber("Extend Out Limit", m_extenderInDetection.get());
+
+    // Set to appropriate speed function
+    SmartDashboard.putNumber("Left Speed", findSpeedTank(Hand.kLeft));
+    SmartDashboard.putNumber("Right Speed", findSpeedTank(Hand.kRight));
   }
 
   // Use left/right triggers to control left/right wheel speed
@@ -199,21 +221,29 @@ public class Robot extends TimedRobot {
     // initialize subsystems and sensors
     m_c.setClosedLoopControl(true);
 
-    m_liftUpLimit.setOversampleBits(4);
-    m_liftUpLimit.setAverageBits(2);
-    m_liftUpLimit.setGlobalSampleRate(62500);
+    // Initialize all dio counters
+    m_extenderOutDetection.reset();
+    m_extenderInDetection.reset();
+    m_liftUpLimitOpticalSwitch.reset();
+    m_liftDownOpticalLimit.reset();
+    m_ballDetectionOpticalSwitch.reset();
+    m_lineDetectionOpticalSwitch.reset();
 
-    m_ballDetection.setOversampleBits(4);
-    m_ballDetection.setAverageBits(2);
-    m_ballDetection.setGlobalSampleRate(62500);
+    // m_liftUpLimit.setOversampleBits(4);
+    // m_liftUpLimit.setAverageBits(2);
+    // m_liftUpLimit.setGlobalSampleRate(62500);
 
-    m_lineDetection.setOversampleBits(4);
-    m_lineDetection.setAverageBits(2);
-    m_lineDetection.setGlobalSampleRate(62500);
+    // m_ballDetection.setOversampleBits(4);
+    // m_ballDetection.setAverageBits(2);
+    // m_ballDetection.setGlobalSampleRate(62500);
 
-    m_extendOutLimit.setOversampleBits(4);
-    m_extendOutLimit.setAverageBits(2);
-    m_extendOutLimit.setGlobalSampleRate(62500);
+    // m_lineDetection.setOversampleBits(4);
+    // m_lineDetection.setAverageBits(2);
+    // m_lineDetection.setGlobalSampleRate(62500);
+
+    // m_extendOutLimit.setOversampleBits(4);
+    // m_extendOutLimit.setAverageBits(2);
+    // m_extendOutLimit.setGlobalSampleRate(62500);
 
   }
 
@@ -223,18 +253,18 @@ public class Robot extends TimedRobot {
     // Note this is only used so that the old chassis can be driven by Sparkd
     // findSpeedJoystick to use joystick
     // findSpeedTank to use triggers
-    m_myRobot.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
-    // This is the real drive train
-    m_4motorDrive.tankDrive(findSpeedTank(Hand.kLeft), findSpeedTank((Hand.kRight)));
 
-    SmartDashboard.putNumber("Lift Up Limit", m_liftUpLimit.getValue());
-    SmartDashboard.putNumber("Ball Detection", m_ballDetection.getValue());
-    SmartDashboard.putNumber("Line Detection", m_lineDetection.getValue());
-    SmartDashboard.putNumber("Extend Out Limit", m_extendOutLimit.getValue());
-
-    // Set to appropriate speed function
-    SmartDashboard.putNumber("Left Speed", findSpeedJoystick(Hand.kLeft));
-    SmartDashboard.putNumber("Right Speed", findSpeedJoystick(Hand.kRight));
+    if (driveModeTank == false) {
+      m_myRobot.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
+      // This is the real drive train
+      m_4motorDrive.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
+    } else {
+      m_myRobot.tankDrive(findSpeedTank(Hand.kLeft), findSpeedTank((Hand.kRight)));
+      // This is the real drive train
+      m_4motorDrive.tankDrive(findSpeedTank(Hand.kLeft), findSpeedTank((Hand.kRight)));
+    }
+    // report status to driver
+    driveStationUpdate();
 
     // Operate the manipulator parts
     ballGrabber();
@@ -245,10 +275,10 @@ public class Robot extends TimedRobot {
     // Set scaling factor for drive
     slowFast();
 
-    boolean enabled = m_c.enabled();
-    boolean pressureSwitch = m_c.getPressureSwitchValue();
-    double current = m_c.getCompressorCurrent();
-
-    // This is just an experiment with a sensor
+    // if we are on the line - reset the counter so we can check if we are still on
+    // the line
+    if (m_lineDetectionOpticalSwitch.get() > k_lineDetection) {
+      m_lineDetectionOpticalSwitch.reset();
+    }
   }
 }
