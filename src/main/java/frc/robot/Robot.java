@@ -60,21 +60,31 @@ public class Robot extends TimedRobot {
   private Counter m_ballDetectionOpticalSwitch = new Counter(4);
   private Counter m_lineDetectionOpticalSwitch = new Counter(5);
 
+  private AnalogInput m_liftUpLimit = new AnalogInput(0);
+  private AnalogInput m_liftDownLimit = new AnalogInput(1);
+  private AnalogInput m_ballDetection = new AnalogInput(2);
+  private AnalogInput m_lineDetection = new AnalogInput(3);
+
   // Note this is only used so that the old chassis can be driven by Spark
   private DifferentialDrive m_myRobot;
 
   // This is the real drive train
-  WPI_TalonSRX m_frontLeft = new WPI_TalonSRX(8);
-  WPI_TalonSRX m_rearLeft = new WPI_TalonSRX(9);
+  WPI_TalonSRX m_frontLeft = new WPI_TalonSRX(7);
+  WPI_TalonSRX m_rearLeft = new WPI_TalonSRX(6);
   SpeedControllerGroup m_left = new SpeedControllerGroup(m_frontLeft, m_rearLeft);
-  WPI_TalonSRX m_frontRight = new WPI_TalonSRX(6);
-  WPI_TalonSRX m_rearRight = new WPI_TalonSRX(7);
+  WPI_TalonSRX m_frontRight = new WPI_TalonSRX(9);
+  WPI_TalonSRX m_rearRight = new WPI_TalonSRX(8);
   SpeedControllerGroup m_right = new SpeedControllerGroup(m_frontRight, m_rearRight);
   DifferentialDrive m_4motorDrive = new DifferentialDrive(m_left, m_right);
 
   // class data
   double slowfast = 1;
   int slowFastLock = 0;
+
+  private int lastUpLimitReading = 0;
+  private int lastDownLimitReading = 0;
+  private int lastBalldetectionReading = 0;
+  private int lastLineDetectionReading = 0;
 
   // method definitions //\\//\\//\\//\\
 
@@ -172,18 +182,23 @@ public class Robot extends TimedRobot {
 
   private void driveStationUpdate() {
     // report limit detections
-    SmartDashboard.putNumber("Ball Detection", m_ballDetectionOpticalSwitch.get());
-    SmartDashboard.putNumber("Line Detection", m_lineDetectionOpticalSwitch.get());
+    SmartDashboard.putNumber("Ball Detection", m_ballDetection.getValue()); // - lastBalldetectionReading);
+    SmartDashboard.putNumber("Line Detection", m_lineDetection.getValue()); // - lastLineDetectionReading);
 
-    SmartDashboard.putNumber("Lift Up Limit", m_liftUpLimitOpticalSwitch.get());
-    SmartDashboard.putNumber("Lift Down Limit", m_liftDownOpticalLimit.get());
+    SmartDashboard.putNumber("Lift Up Limit", m_liftUpLimit.getValue()); // - lastUpLimitReading);
+    SmartDashboard.putNumber("Lift Down Limit", m_liftDownLimit.getValue()); // - lastDownLimitReading);
 
     SmartDashboard.putNumber("Extend Out Limit", m_extenderOutDetection.get());
-    SmartDashboard.putNumber("Extend Out Limit", m_extenderInDetection.get());
+    SmartDashboard.putNumber("Extend In Limit", m_extenderInDetection.get());
 
     // Set to appropriate speed function
-    SmartDashboard.putNumber("Left Speed", findSpeedTank(Hand.kLeft));
-    SmartDashboard.putNumber("Right Speed", findSpeedTank(Hand.kRight));
+    if (driveModeTank == true) {
+      SmartDashboard.putNumber("Left Speed", findSpeedTank(Hand.kLeft));
+      SmartDashboard.putNumber("Right Speed", findSpeedTank(Hand.kRight));
+    } else {
+      SmartDashboard.putNumber("Left Speed", findSpeedJoystick(Hand.kLeft));
+      SmartDashboard.putNumber("Right Speed", findSpeedJoystick(Hand.kRight));
+    }
   }
 
   // Use left/right triggers to control left/right wheel speed
@@ -212,9 +227,9 @@ public class Robot extends TimedRobot {
     m_driver = new XboxController(0);
     m_manipStick = new Joystick(2);
 
-    m_intakemotor = new WPI_TalonSRX(5);
+    m_intakemotor = new WPI_TalonSRX(4);
     m_extender = new WPI_TalonSRX(10);
-    m_lifter = new WPI_TalonSRX(11);
+    m_lifter = new WPI_TalonSRX(3);
 
     m_c = new Compressor(1);
 
@@ -229,39 +244,39 @@ public class Robot extends TimedRobot {
     m_ballDetectionOpticalSwitch.reset();
     m_lineDetectionOpticalSwitch.reset();
 
-    // m_liftUpLimit.setOversampleBits(4);
-    // m_liftUpLimit.setAverageBits(2);
-    // m_liftUpLimit.setGlobalSampleRate(62500);
+    m_liftUpLimit.setOversampleBits(4);
+    m_liftUpLimit.setAverageBits(2);
+    m_liftDownLimit.setOversampleBits(4);
+    m_liftDownLimit.setAverageBits(2);
 
-    // m_ballDetection.setOversampleBits(4);
-    // m_ballDetection.setAverageBits(2);
-    // m_ballDetection.setGlobalSampleRate(62500);
+    m_ballDetection.setOversampleBits(4);
+    m_ballDetection.setAverageBits(2);
 
-    // m_lineDetection.setOversampleBits(4);
-    // m_lineDetection.setAverageBits(2);
-    // m_lineDetection.setGlobalSampleRate(62500);
+    m_lineDetection.setOversampleBits(4);
+    m_lineDetection.setAverageBits(2);
 
-    // m_extendOutLimit.setOversampleBits(4);
-    // m_extendOutLimit.setAverageBits(2);
-    // m_extendOutLimit.setGlobalSampleRate(62500);
+    m_liftDownLimit.setGlobalSampleRate(62500);
 
   }
 
   // drive/manip
   @Override
   public void teleopPeriodic() {
-    // Note this is only used so that the old chassis can be driven by Sparkd
+
     // findSpeedJoystick to use joystick
     // findSpeedTank to use triggers
 
-    if (driveModeTank == false) {
-      m_myRobot.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
-      // This is the real drive train
-      m_4motorDrive.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
-    } else {
+    if (driveModeTank == true) {
+      // Note this is only used so that the old chassis can be driven by Sparks
       m_myRobot.tankDrive(findSpeedTank(Hand.kLeft), findSpeedTank((Hand.kRight)));
       // This is the real drive train
       m_4motorDrive.tankDrive(findSpeedTank(Hand.kLeft), findSpeedTank((Hand.kRight)));
+
+    } else {
+      // Note this is only used so that the old chassis can be driven by Sparks
+      m_myRobot.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
+      // This is the real drive train
+      m_4motorDrive.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
     }
     // report status to driver
     driveStationUpdate();
@@ -280,5 +295,14 @@ public class Robot extends TimedRobot {
     if (m_lineDetectionOpticalSwitch.get() > k_lineDetection) {
       m_lineDetectionOpticalSwitch.reset();
     }
+
+    lastUpLimitReading = m_liftUpLimit.getValue();
+    lastDownLimitReading = m_liftDownLimit.getValue();
+    lastBalldetectionReading = m_ballDetection.getValue();
+    lastLineDetectionReading = m_lineDetection.getValue();
+  }
+
+  @Override
+  public void autonomousPeriodic() {
   }
 }
