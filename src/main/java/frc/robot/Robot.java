@@ -27,20 +27,38 @@ public class Robot extends TimedRobot {
   // constants
   private int k_liftUpLimit = 0;
   private int K_liftDownLimit = 0;
-
   private int k_ballDetection = 0;
-
   private int k_lineDetection = 0;
-
   private int k_extendOutLimit = 0;
   private int K_extendInLimit = 0;
 
+  private int k_liftUpButton = 4;
+  private int k_liftDownButton = 5;
+  private int k_extendOutButton = 6;
+  private int K_extendInButton = 7;
+  private int k_rampDeployUpButton = 8;
+  private int k_rampDeployDownButton = 9;
+
   private boolean driveModeTank = false; // Change this to true to select tank steering
+
+  private int lock = 0;
 
   // motors
   private WPI_TalonSRX m_intakemotor;
   private WPI_TalonSRX m_lifter;
   private WPI_TalonSRX m_extender;
+  private WPI_TalonSRX m_rampDeploy;
+
+  // This is the real drive train
+  WPI_TalonSRX m_frontLeft = new WPI_TalonSRX(7);
+  WPI_TalonSRX m_rearLeft = new WPI_TalonSRX(6);
+  SpeedControllerGroup m_left = new SpeedControllerGroup(m_frontLeft, m_rearLeft);
+  WPI_TalonSRX m_frontRight = new WPI_TalonSRX(9);
+  WPI_TalonSRX m_rearRight = new WPI_TalonSRX(8);
+  SpeedControllerGroup m_right = new SpeedControllerGroup(m_frontRight, m_rearRight);
+  DifferentialDrive m_4motorDrive = new DifferentialDrive(m_left, m_right);
+  // Note this is only used so that the old chassis can be driven by Spark
+  private DifferentialDrive m_myRobot;
 
   // controlers
   private Joystick m_manipStick;
@@ -65,29 +83,16 @@ public class Robot extends TimedRobot {
   private AnalogInput m_ballDetection = new AnalogInput(2);
   private AnalogInput m_lineDetection = new AnalogInput(3);
 
-  // Note this is only used so that the old chassis can be driven by Spark
-  private DifferentialDrive m_myRobot;
-
-  // This is the real drive train
-  WPI_TalonSRX m_frontLeft = new WPI_TalonSRX(7);
-  WPI_TalonSRX m_rearLeft = new WPI_TalonSRX(6);
-  SpeedControllerGroup m_left = new SpeedControllerGroup(m_frontLeft, m_rearLeft);
-  WPI_TalonSRX m_frontRight = new WPI_TalonSRX(9);
-  WPI_TalonSRX m_rearRight = new WPI_TalonSRX(8);
-  SpeedControllerGroup m_right = new SpeedControllerGroup(m_frontRight, m_rearRight);
-  DifferentialDrive m_4motorDrive = new DifferentialDrive(m_left, m_right);
-
   // class data
   double slowfast = 1;
   int slowFastLock = 0;
-
   private int lastUpLimitReading = 0;
   private int lastDownLimitReading = 0;
   private int lastBalldetectionReading = 0;
   private int lastLineDetectionReading = 0;
 
   // method definitions //\\//\\//\\//\\
-
+  /******************************************************************************************* */
   // ballGrabber
   private void ballGrabber() {
 
@@ -100,6 +105,7 @@ public class Robot extends TimedRobot {
     }
   }
 
+  /******************************************************************************************* */
   // lifter
   private void lifter() {
     int moveUp = 1;
@@ -116,15 +122,16 @@ public class Robot extends TimedRobot {
       m_liftDownOpticalLimit.reset();
     }
 
-    if (m_manipStick.getRawButton(4)) {
+    if (m_manipStick.getRawButton(k_liftUpButton)) {
       m_lifter.set(.8 * moveUp);
-    } else if (m_manipStick.getRawButton(5)) {
+    } else if (m_manipStick.getRawButton(k_liftDownButton)) {
       m_lifter.set(-.8 * moveDown);
     } else {
       m_lifter.set(0);
     }
   }
 
+  /******************************************************************************************* */
   // extender
   private void extender() {
     int moveOut = 1;
@@ -141,15 +148,29 @@ public class Robot extends TimedRobot {
       m_extenderInDetection.reset();
     }
 
-    if (m_manipStick.getRawButton(6)) {
+    if (m_manipStick.getRawButton(k_extendOutButton)) {
       m_extender.set(.8 * moveOut);
-    } else if (m_manipStick.getRawButton(7)) {
+    } else if (m_manipStick.getRawButton(K_extendInButton)) {
       m_extender.set(-.8 * moveIn);
     } else {
       m_extender.set(0);
     }
   }
 
+  /******************************************************************************************* */
+  // rampDeploy
+  private void rampDeploy() {
+
+    if (m_manipStick.getRawButton(k_rampDeployUpButton)) {
+      m_rampDeploy.set(.8);
+    } else if (m_manipStick.getRawButton(k_rampDeployDownButton)) {
+      m_rampDeploy.set(-.8);
+    } else {
+      m_rampDeploy.set(0);
+    }
+  }
+
+  /******************************************************************************************* */
   // slowfast
   private void slowFast() {
     if (m_driver.getAButton()) {
@@ -163,6 +184,7 @@ public class Robot extends TimedRobot {
   /*
    * if (slowfast == .5) { slowfast = 1; } else { slowfast = .5; }
    */
+  /******************************************************************************************* */
   // ball handler
   private void ballhandle() {
     int move = 1;
@@ -180,10 +202,24 @@ public class Robot extends TimedRobot {
     }
   }
 
+  /******************************************************************************************* */
   private void driveStationUpdate() {
     // report limit detections
     SmartDashboard.putNumber("Ball Detection", m_ballDetection.getValue()); // - lastBalldetectionReading);
     SmartDashboard.putNumber("Line Detection", m_lineDetection.getValue()); // - lastLineDetectionReading);
+    // mini loop to detect line and print stuff
+    if ((m_ballDetection.getValue() == 1) && (lock == 0)) {
+      if ((findSpeedTank(Hand.kRight) < findSpeedTank(Hand.kLeft))
+          || (findSpeedJoystick(Hand.kRight) < findSpeedJoystick(Hand.kLeft))) {
+        SmartDashboard.putNumber("You need to go right", findSpeedTank(Hand.kLeft));
+      } else {
+        SmartDashboard.putNumber("You need to go left", findSpeedTank(Hand.kLeft));
+      }
+      lock = 1;
+    } else {
+      lock = 0;
+    }
+    // may not have correct values
 
     SmartDashboard.putNumber("Lift Up Limit", m_liftUpLimit.getValue()); // - lastUpLimitReading);
     SmartDashboard.putNumber("Lift Down Limit", m_liftDownLimit.getValue()); // - lastDownLimitReading);
@@ -201,6 +237,7 @@ public class Robot extends TimedRobot {
     }
   }
 
+  /******************************************************************************************* */
   // Use left/right triggers to control left/right wheel speed
   // Use left/right bumper to reverse/forward
   private double findSpeedTank(Hand hand) {
@@ -213,11 +250,13 @@ public class Robot extends TimedRobot {
     return m_driver.getTriggerAxis(hand) * slowfast * triggerValue;
   }
 
+  /******************************************************************************************* */
   private double findSpeedJoystick(Hand hand) {
     return (m_driver.getY(hand) * slowfast) * -1;
   }
 
   // classes
+  /******************************************************************************************* */
   @Override
   public void robotInit() {
     // Note this is only used so that the old chassis can be driven by Sparks
@@ -230,6 +269,7 @@ public class Robot extends TimedRobot {
     m_intakemotor = new WPI_TalonSRX(4);
     m_extender = new WPI_TalonSRX(10);
     m_lifter = new WPI_TalonSRX(3);
+    m_rampDeploy = new WPI_TalonSRX(11);
 
     m_c = new Compressor(1);
 
@@ -260,6 +300,7 @@ public class Robot extends TimedRobot {
   }
 
   // drive/manip
+  /******************************************************************************************* */
   @Override
   public void teleopPeriodic() {
 
@@ -286,6 +327,7 @@ public class Robot extends TimedRobot {
     ballhandle();
     lifter();
     extender();
+    rampDeploy();
 
     // Set scaling factor for drive
     slowFast();
@@ -302,7 +344,9 @@ public class Robot extends TimedRobot {
     lastLineDetectionReading = m_lineDetection.getValue();
   }
 
+  /******************************************************************************************* */
   @Override
   public void autonomousPeriodic() {
+    teleopPeriodic();
   }
 }
