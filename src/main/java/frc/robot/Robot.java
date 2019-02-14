@@ -46,7 +46,7 @@ public class Robot extends TimedRobot {
   // motors
   private WPI_TalonSRX m_intakemotor;
   private WPI_TalonSRX m_lifter;
-  private WPI_TalonSRX m_extender;
+  private WPI_TalonSRX m_sled;
   private WPI_TalonSRX m_rampDeploy;
 
   // This is the real drive train
@@ -149,11 +149,11 @@ public class Robot extends TimedRobot {
     }
 
     if (m_manipStick.getRawButton(k_extendOutButton)) {
-      m_extender.set(.8 * moveOut);
+      m_sled.set(.8 * moveOut);
     } else if (m_manipStick.getRawButton(K_extendInButton)) {
-      m_extender.set(-.8 * moveIn);
+      m_sled.set(-.8 * moveIn);
     } else {
-      m_extender.set(0);
+      m_sled.set(0);
     }
   }
 
@@ -208,7 +208,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Ball Detection", m_ballDetection.getValue()); // - lastBalldetectionReading);
     SmartDashboard.putNumber("Line Detection", m_lineDetection.getValue()); // - lastLineDetectionReading);
     // mini loop to detect line and print stuff
-    if ((m_ballDetection.getValue() == 1) && (lock == 0)) {
+    if ((m_lineDetection.getValue() == 1) && (lock == 0)) {
       if ((findSpeedTank(Hand.kRight) < findSpeedTank(Hand.kLeft))
           || (findSpeedJoystick(Hand.kRight) < findSpeedJoystick(Hand.kLeft))) {
         SmartDashboard.putNumber("You need to go right", findSpeedTank(Hand.kLeft));
@@ -267,7 +267,7 @@ public class Robot extends TimedRobot {
     m_manipStick = new Joystick(2);
 
     m_intakemotor = new WPI_TalonSRX(4);
-    m_extender = new WPI_TalonSRX(10);
+    m_sled = new WPI_TalonSRX(10);
     m_lifter = new WPI_TalonSRX(3);
     m_rampDeploy = new WPI_TalonSRX(11);
 
