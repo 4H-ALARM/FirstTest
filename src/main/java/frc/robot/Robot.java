@@ -32,10 +32,14 @@ public class Robot extends TimedRobot {
   private int k_extendOutLimit = 0;
   private int K_extendInLimit = 0;
 
+  private int k_ballGrabButton = 1;
+  private int K_ballReleaseButton = 2;
   private int k_liftUpButton = 4;
   private int k_liftDownButton = 5;
-  private int k_extendOutButton = 6;
-  private int K_extendInButton = 7;
+  private int k_sledOutButton = 6;
+  private int K_sledInButton = 7;
+  private int k_suctionOnButton = 10;
+  private int K_suctionOffButton = 11;
   private int k_rampDeployUpButton = 8;
   private int k_rampDeployDownButton = 9;
 
@@ -44,7 +48,7 @@ public class Robot extends TimedRobot {
   private int lock = 0;
 
   // motors
-  private WPI_TalonSRX m_intakemotor;
+  private WPI_TalonSRX m_ballgrabber;
   private WPI_TalonSRX m_lifter;
   private WPI_TalonSRX m_sled;
   private WPI_TalonSRX m_rampDeploy;
@@ -66,7 +70,8 @@ public class Robot extends TimedRobot {
 
   // pnuematics
   private Compressor m_c;
-  private DoubleSolenoid m_ballGrab = new DoubleSolenoid(1, 2);
+  private DoubleSolenoid m_ballGrab = new DoubleSolenoid(0, 1);
+  private DoubleSolenoid m_suction = new DoubleSolenoid(2, 3);
 
   // detectors
   // switches to detect ball handler extension limits
@@ -96,12 +101,25 @@ public class Robot extends TimedRobot {
   // ballGrabber
   private void ballGrabber() {
 
-    if (m_manipStick.getRawButton(1)) {
+    if (m_manipStick.getRawButton(k_ballGrabButton)) {
       m_ballGrab.set(DoubleSolenoid.Value.kReverse);
-    } else if (m_manipStick.getRawButton(2)) {
+    } else if (m_manipStick.getRawButton(K_ballReleaseButton)) {
       m_ballGrab.set(DoubleSolenoid.Value.kForward);
     } else {
       m_ballGrab.set(DoubleSolenoid.Value.kOff);
+    }
+  }
+
+  /******************************************************************************************* */
+  // hatchGrabber
+  private void hatchGrabber() {
+
+    if (m_manipStick.getRawButton(k_suctionOnButton)) {
+      m_suction.set(DoubleSolenoid.Value.kReverse);
+    } else if (m_manipStick.getRawButton(K_suctionOffButton)) {
+      m_suction.set(DoubleSolenoid.Value.kForward);
+    } else {
+      m_suction.set(DoubleSolenoid.Value.kOff);
     }
   }
 
@@ -148,9 +166,9 @@ public class Robot extends TimedRobot {
       m_extenderInDetection.reset();
     }
 
-    if (m_manipStick.getRawButton(k_extendOutButton)) {
+    if (m_manipStick.getRawButton(k_sledOutButton)) {
       m_sled.set(.8 * moveOut);
-    } else if (m_manipStick.getRawButton(K_extendInButton)) {
+    } else if (m_manipStick.getRawButton(K_sledInButton)) {
       m_sled.set(-.8 * moveIn);
     } else {
       m_sled.set(0);
@@ -194,11 +212,11 @@ public class Robot extends TimedRobot {
       m_ballDetectionOpticalSwitch.reset();
     }
     if (m_manipStick.getButton(ButtonType.kTrigger)) {
-      m_intakemotor.set(.8 * move);
+      m_ballgrabber.set(.8 * move);
     } else if (m_manipStick.getButton(ButtonType.kTop)) {
-      m_intakemotor.set(-.8);
+      m_ballgrabber.set(-.8);
     } else {
-      m_intakemotor.set(0);
+      m_ballgrabber.set(0);
     }
   }
 
@@ -266,7 +284,7 @@ public class Robot extends TimedRobot {
     m_driver = new XboxController(0);
     m_manipStick = new Joystick(2);
 
-    m_intakemotor = new WPI_TalonSRX(4);
+    m_ballgrabber = new WPI_TalonSRX(4);
     m_sled = new WPI_TalonSRX(10);
     m_lifter = new WPI_TalonSRX(3);
     m_rampDeploy = new WPI_TalonSRX(11);
@@ -324,6 +342,7 @@ public class Robot extends TimedRobot {
 
     // Operate the manipulator parts
     ballGrabber();
+    hatchGrabber();
     ballhandle();
     lifter();
     extender();
