@@ -12,6 +12,7 @@ import com.ctre.phoenix.motorcontrol.can.*;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Counter;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Spark;
@@ -86,16 +87,17 @@ public class Robot extends TimedRobot {
 
   // detectors
   // switches to detect ball handler extension limits
-  private Counter m_extenderOutDetection = new Counter(0);
-  private Counter m_extenderInDetection = new Counter(1);
+  private DigitalInput m_sledOutDetection = new DigitalInput(0);
+  private DigitalInput m_sledInDetection = new DigitalInput(1);
+  private DigitalInput m_liftUpLimit = new DigitalInput(2);
+  private DigitalInput m_liftDownLimit = new DigitalInput(3);
+
   // Using optical sensors as digital inputs
-  private Counter m_liftUpLimitOpticalSwitch = new Counter(2);
-  private Counter m_liftDownOpticalLimit = new Counter(3);
+  private Counter m_liftUpLimitOpticalSwitch = new Counter(6);
+  private Counter m_liftDownOpticalLimit = new Counter(7);
   private Counter m_ballDetectionOpticalSwitch = new Counter(4);
   private Counter m_lineDetectionOpticalSwitch = new Counter(5);
 
-  private AnalogInput m_liftUpLimit = new AnalogInput(0);
-  private AnalogInput m_liftDownLimit = new AnalogInput(1);
   private AnalogInput m_ballDetection = new AnalogInput(2);
   private AnalogInput m_lineDetection = new AnalogInput(3);
 
@@ -162,14 +164,12 @@ public class Robot extends TimedRobot {
     int moveIn = 1;
 
     // see if we have hit travel limits
-    if (m_extenderOutDetection.get() > k_extendOutLimit) {
+    if (m_sledOutDetection.get() == false) {
       moveOut = 0; // the max extension struck at least once since last loop - so stop the motors
-      m_extenderOutDetection.reset();
     }
-    if (m_extenderInDetection.get() > K_extendInLimit) {
+    if (m_sledInDetection.get() == false) {
       moveIn = 0; // the minimum extension was struck at least once since last loop - so stop the
                   // motors
-      m_extenderInDetection.reset();
     }
 
     if (m_manipStick.getRawButton(k_sledOutButton)) {
@@ -254,11 +254,11 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("Ball Grab", m_ballGrab.get().toString());
     SmartDashboard.putString("Suction", m_suction.get().toString());
 
-    SmartDashboard.putNumber("Lift Up Limit", m_liftUpLimit.getValue()); // - lastUpLimitReading);
-    SmartDashboard.putNumber("Lift Down Limit", m_liftDownLimit.getValue()); // - lastDownLimitReading);
+    SmartDashboard.putBoolean("Lift Up Limit", !m_liftUpLimit.get()); // - lastUpLimitReading);
+    SmartDashboard.putBoolean("Lift Down Limit", !m_liftDownLimit.get()); // - lastDownLimitReading);
 
-    SmartDashboard.putNumber("Extend Out Limit", m_extenderOutDetection.get());
-    SmartDashboard.putNumber("Extend In Limit", m_extenderInDetection.get());
+    SmartDashboard.putBoolean("Sled Out Limit", !m_sledOutDetection.get());
+    SmartDashboard.putBoolean("Sled In Limit", !m_sledInDetection.get());
 
     // Set to appropriate speed function
     if (driveModeTank == true) {
@@ -310,17 +310,10 @@ public class Robot extends TimedRobot {
     m_c.setClosedLoopControl(true);
 
     // Initialize all dio counters
-    m_extenderOutDetection.reset();
-    m_extenderInDetection.reset();
     m_liftUpLimitOpticalSwitch.reset();
     m_liftDownOpticalLimit.reset();
     m_ballDetectionOpticalSwitch.reset();
     m_lineDetectionOpticalSwitch.reset();
-
-    m_liftUpLimit.setOversampleBits(4);
-    m_liftUpLimit.setAverageBits(2);
-    m_liftDownLimit.setOversampleBits(4);
-    m_liftDownLimit.setAverageBits(2);
 
     m_ballDetection.setOversampleBits(4);
     m_ballDetection.setAverageBits(2);
@@ -328,7 +321,7 @@ public class Robot extends TimedRobot {
     m_lineDetection.setOversampleBits(4);
     m_lineDetection.setAverageBits(2);
 
-    m_liftDownLimit.setGlobalSampleRate(62500);
+    m_ballDetection.setGlobalSampleRate(62500);
 
   }
 
