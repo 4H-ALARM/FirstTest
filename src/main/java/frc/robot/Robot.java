@@ -32,33 +32,44 @@ public class Robot extends TimedRobot {
   private int k_extendOutLimit = 0;
   private int K_extendInLimit = 0;
 
-  private int k_ballGrabButton = 1;
-  private int K_ballReleaseButton = 2;
+  private int k_ballInButton = 1;
+  private int K_ballOutButton = 2;
+  private int k_ballGrabButton = 3;
   private int k_liftUpButton = 4;
   private int k_liftDownButton = 5;
   private int k_sledOutButton = 6;
   private int K_sledInButton = 7;
-  private int k_suctionOnButton = 10;
-  private int K_suctionOffButton = 11;
+  private int k_suctionOnButton = 11;
+  private int K_suctionOffButton = 10;
   private int k_rampDeployUpButton = 8;
   private int k_rampDeployDownButton = 9;
+
+  private int k_addressPCM = 1;
+  private int k_addressDriveFL = 7;
+  private int k_addressDriveRL = 6;
+  private int k_addressDriveFR = 9;
+  private int k_addressDriveRR = 8;
+  private int k_addressBallInOut = 4;
+  private int k_addressLifter = 3;
+  private int k_addressSled = 10;
+  private int k_addressRampDeploy = 11;
 
   private boolean driveModeTank = false; // Change this to true to select tank steering
 
   private int lock = 0;
 
   // motors
-  private WPI_TalonSRX m_ballgrabber;
+  private WPI_TalonSRX m_ballInOut;
   private WPI_TalonSRX m_lifter;
   private WPI_TalonSRX m_sled;
   private WPI_TalonSRX m_rampDeploy;
 
   // This is the real drive train
-  WPI_TalonSRX m_frontLeft = new WPI_TalonSRX(7);
-  WPI_TalonSRX m_rearLeft = new WPI_TalonSRX(6);
+  WPI_TalonSRX m_frontLeft = new WPI_TalonSRX(k_addressDriveFL);
+  WPI_TalonSRX m_rearLeft = new WPI_TalonSRX(k_addressDriveRL);
   SpeedControllerGroup m_left = new SpeedControllerGroup(m_frontLeft, m_rearLeft);
-  WPI_TalonSRX m_frontRight = new WPI_TalonSRX(9);
-  WPI_TalonSRX m_rearRight = new WPI_TalonSRX(8);
+  WPI_TalonSRX m_frontRight = new WPI_TalonSRX(k_addressDriveFR);
+  WPI_TalonSRX m_rearRight = new WPI_TalonSRX(k_addressDriveRR);
   SpeedControllerGroup m_right = new SpeedControllerGroup(m_frontRight, m_rearRight);
   DifferentialDrive m_4motorDrive = new DifferentialDrive(m_left, m_right);
   // Note this is only used so that the old chassis can be driven by Spark
@@ -70,8 +81,8 @@ public class Robot extends TimedRobot {
 
   // pnuematics
   private Compressor m_c;
-  private DoubleSolenoid m_ballGrab = new DoubleSolenoid(0, 1);
-  private DoubleSolenoid m_suction = new DoubleSolenoid(2, 3);
+  private DoubleSolenoid m_ballGrab = new DoubleSolenoid(k_addressPCM, 0, 1);
+  private DoubleSolenoid m_suction = new DoubleSolenoid(k_addressPCM, 2, 3);
 
   // detectors
   // switches to detect ball handler extension limits
@@ -97,14 +108,13 @@ public class Robot extends TimedRobot {
   private int lastLineDetectionReading = 0;
 
   // method definitions //\\//\\//\\//\\
+
   /******************************************************************************************* */
   // ballGrabber
   private void ballGrabber() {
 
     if (m_manipStick.getRawButton(k_ballGrabButton)) {
       m_ballGrab.set(DoubleSolenoid.Value.kReverse);
-    } else if (m_manipStick.getRawButton(K_ballReleaseButton)) {
-      m_ballGrab.set(DoubleSolenoid.Value.kForward);
     } else {
       m_ballGrab.set(DoubleSolenoid.Value.kOff);
     }
@@ -212,11 +222,11 @@ public class Robot extends TimedRobot {
       m_ballDetectionOpticalSwitch.reset();
     }
     if (m_manipStick.getButton(ButtonType.kTrigger)) {
-      m_ballgrabber.set(.8 * move);
+      m_ballInOut.set(.8 * move);
     } else if (m_manipStick.getButton(ButtonType.kTop)) {
-      m_ballgrabber.set(-.8);
+      m_ballInOut.set(-.8);
     } else {
-      m_ballgrabber.set(0);
+      m_ballInOut.set(0);
     }
   }
 
@@ -237,7 +247,16 @@ public class Robot extends TimedRobot {
     } else {
       lock = 0;
     }
-    // may not have correct values
+
+    // manipulator motors
+    SmartDashboard.putNumber("Ball In or Out Speed", m_ballInOut.get());
+    SmartDashboard.putNumber("Lifter Speed", m_lifter.get());
+    SmartDashboard.putNumber("Sled Speed", m_sled.get());
+    SmartDashboard.putNumber("Ramp Deploy Speed", m_rampDeploy.get());
+
+    // manipulator control
+    SmartDashboard.putString("Ball Grab", m_ballGrab.get().toString());
+    SmartDashboard.putString("Suction", m_suction.get().toString());
 
     SmartDashboard.putNumber("Lift Up Limit", m_liftUpLimit.getValue()); // - lastUpLimitReading);
     SmartDashboard.putNumber("Lift Down Limit", m_liftDownLimit.getValue()); // - lastDownLimitReading);
@@ -284,10 +303,10 @@ public class Robot extends TimedRobot {
     m_driver = new XboxController(0);
     m_manipStick = new Joystick(2);
 
-    m_ballgrabber = new WPI_TalonSRX(4);
-    m_sled = new WPI_TalonSRX(10);
-    m_lifter = new WPI_TalonSRX(3);
-    m_rampDeploy = new WPI_TalonSRX(11);
+    m_ballInOut = new WPI_TalonSRX(k_addressBallInOut);
+    m_sled = new WPI_TalonSRX(k_addressSled);
+    m_lifter = new WPI_TalonSRX(k_addressLifter);
+    m_rampDeploy = new WPI_TalonSRX(k_addressRampDeploy);
 
     m_c = new Compressor(1);
 
