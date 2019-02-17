@@ -82,7 +82,7 @@ public class Robot extends TimedRobot {
 
   // pnuematics
   private Compressor m_c;
-  private DoubleSolenoid m_ballGrab = new DoubleSolenoid(k_addressPCM, 0, 1);
+  private DoubleSolenoid m_ballGrab = new DoubleSolenoid(k_addressPCM, 6, 7);
   private DoubleSolenoid m_suction = new DoubleSolenoid(k_addressPCM, 2, 3);
 
   // detectors
