@@ -102,10 +102,6 @@ public class Robot extends TimedRobot {
   // class data
   double slowfast = 1;
   int slowFastLock = 0;
-  private int lastUpLimitReading = 0;
-  private int lastDownLimitReading = 0;
-  private int lastBalldetectionReading = 0;
-  private int lastLineDetectionReading = 0;
 
   // method definitions //\\//\\//\\//\\
 
@@ -376,15 +372,11 @@ public class Robot extends TimedRobot {
       m_lineDetectionOpticalSwitch.reset();
     }
 
-    lastUpLimitReading = m_liftUpLimit.getValue();
-    lastDownLimitReading = m_liftDownLimit.getValue();
-    lastBalldetectionReading = m_ballDetection.getValue();
-    lastLineDetectionReading = m_lineDetection.getValue();
   }
 
   /******************************************************************************************* */
   @Override
   public void autonomousPeriodic() {
-    teleopPeriodic();
+    // teleopPeriodic();
   }
 }
