@@ -33,6 +33,7 @@ public class Robot extends TimedRobot {
   private int k_extendOutLimit = 0;
   private int K_extendInLimit = 0;
 
+  // Maniputlator Buttons
   private int k_ballInButton = 1;
   private int K_ballOutButton = 2;
   private int k_ballGrabButton = 3;
@@ -42,8 +43,12 @@ public class Robot extends TimedRobot {
   private int K_sledInButton = 7;
   private int k_suctionOnButton = 11;
   private int K_suctionOffButton = 10;
-  private int k_rampDeployUpButton = 8;
-  private int k_rampDeployDownButton = 9;
+
+  // Drive Buttons
+  private int k_fullExtendOutButton = 3;
+  private int k_fullExtendInButton = 2;
+  private int k_rampDeployReleaseButton = 7;
+  private int k_rampDeployLatchButton = 8;
 
   private int k_addressPCM = 1;
   private int k_addressDriveFL = 7;
@@ -84,6 +89,8 @@ public class Robot extends TimedRobot {
   private Compressor m_c;
   private DoubleSolenoid m_ballGrab = new DoubleSolenoid(k_addressPCM, 6, 7);
   private DoubleSolenoid m_suction = new DoubleSolenoid(k_addressPCM, 2, 3);
+  private DoubleSolenoid m_rampRelease = new DoubleSolenoid(k_addressPCM, 0, 1);
+  private DoubleSolenoid m_fullExtend = new DoubleSolenoid(k_addressPCM, 4, 5);
 
   // detectors
   // switches to detect ball handler extension limits
@@ -108,26 +115,20 @@ public class Robot extends TimedRobot {
   // method definitions //\\//\\//\\//\\
 
   /******************************************************************************************* */
-  // ballGrabber
-  private void ballGrabber() {
+  // ball handler
+  private void ballhandle() {
+    int move = 1;
 
-    if (m_manipStick.getRawButton(k_ballGrabButton)) {
-      m_ballGrab.set(DoubleSolenoid.Value.kReverse);
-    } else {
-      m_ballGrab.set(DoubleSolenoid.Value.kOff);
+    if (m_ballDetectionOpticalSwitch.get() > k_ballDetection) {
+      move = 0; // the intake was struck at least once since last loop - so stop the motors
+      m_ballDetectionOpticalSwitch.reset();
     }
-  }
-
-  /******************************************************************************************* */
-  // hatchGrabber
-  private void hatchGrabber() {
-
-    if (m_manipStick.getRawButton(k_suctionOnButton)) {
-      m_suction.set(DoubleSolenoid.Value.kReverse);
-    } else if (m_manipStick.getRawButton(K_suctionOffButton)) {
-      m_suction.set(DoubleSolenoid.Value.kForward);
+    if (m_manipStick.getButton(ButtonType.kTrigger)) {
+      m_ballInOut.set(.8 * move);
+    } else if (m_manipStick.getButton(ButtonType.kTop)) {
+      m_ballInOut.set(-.8);
     } else {
-      m_suction.set(DoubleSolenoid.Value.kOff);
+      m_ballInOut.set(0);
     }
   }
 
@@ -182,47 +183,52 @@ public class Robot extends TimedRobot {
   }
 
   /******************************************************************************************* */
+  // hatchGrabber
+  private void hatchGrabber() {
+
+    if (m_manipStick.getRawButton(k_suctionOnButton)) {
+      m_suction.set(DoubleSolenoid.Value.kReverse);
+    } else if (m_manipStick.getRawButton(K_suctionOffButton)) {
+      m_suction.set(DoubleSolenoid.Value.kForward);
+    } else {
+      m_suction.set(DoubleSolenoid.Value.kOff);
+    }
+  }
+
+  /******************************************************************************************* */
+  // ballGrabber
+  private void ballGrabber() {
+
+    if (m_manipStick.getRawButton(k_ballGrabButton)) {
+      m_ballGrab.set(DoubleSolenoid.Value.kReverse);
+    } else {
+      m_ballGrab.set(DoubleSolenoid.Value.kOff);
+    }
+  }
+
+  /******************************************************************************************* */
   // rampDeploy
   private void rampDeploy() {
 
-    if (m_manipStick.getRawButton(k_rampDeployUpButton)) {
-      m_rampDeploy.set(.8);
-    } else if (m_manipStick.getRawButton(k_rampDeployDownButton)) {
-      m_rampDeploy.set(-.8);
+    if (m_driver.getRawButton(k_rampDeployReleaseButton)) {
+      m_rampRelease.set(DoubleSolenoid.Value.kReverse);
+    } else if (m_driver.getRawButton(k_rampDeployLatchButton)) {
+      m_rampRelease.set(DoubleSolenoid.Value.kForward);
     } else {
-      m_rampDeploy.set(0);
+      m_rampRelease.set(DoubleSolenoid.Value.kOff);
     }
   }
 
   /******************************************************************************************* */
-  // slowfast
-  private void slowFast() {
-    if (m_driver.getAButton()) {
-      slowfast = 1;
-    }
-    if (m_driver.getBButton()) {
-      slowfast = .5;
-    }
-  }
+  // fullExtend
+  private void fullExtension() {
 
-  /*
-   * if (slowfast == .5) { slowfast = 1; } else { slowfast = .5; }
-   */
-  /******************************************************************************************* */
-  // ball handler
-  private void ballhandle() {
-    int move = 1;
-
-    if (m_ballDetectionOpticalSwitch.get() > k_ballDetection) {
-      move = 0; // the intake was struck at least once since last loop - so stop the motors
-      m_ballDetectionOpticalSwitch.reset();
-    }
-    if (m_manipStick.getButton(ButtonType.kTrigger)) {
-      m_ballInOut.set(.8 * move);
-    } else if (m_manipStick.getButton(ButtonType.kTop)) {
-      m_ballInOut.set(-.8);
+    if (m_driver.getRawButton(k_fullExtendOutButton)) {
+      m_fullExtend.set(DoubleSolenoid.Value.kReverse);
+    } else if (m_driver.getRawButton(k_fullExtendInButton)) {
+      m_fullExtend.set(DoubleSolenoid.Value.kForward);
     } else {
-      m_ballInOut.set(0);
+      m_fullExtend.set(DoubleSolenoid.Value.kOff);
     }
   }
 
@@ -254,8 +260,12 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("Ball Grab", m_ballGrab.get().toString());
     SmartDashboard.putString("Suction", m_suction.get().toString());
 
-    SmartDashboard.putBoolean("Lift Up Limit", !m_liftUpLimit.get()); // - lastUpLimitReading);
-    SmartDashboard.putBoolean("Lift Down Limit", !m_liftDownLimit.get()); // - lastDownLimitReading);
+    // driver buttons
+    SmartDashboard.putString("Ramp Release", m_rampRelease.get().toString());
+    SmartDashboard.putString("Full Extension", m_fullExtend.get().toString());
+
+    SmartDashboard.putBoolean("Lift Up Limit", !m_liftUpLimit.get());
+    SmartDashboard.putBoolean("Lift Down Limit", !m_liftDownLimit.get());
 
     SmartDashboard.putBoolean("Sled Out Limit", !m_sledOutDetection.get());
     SmartDashboard.putBoolean("Sled In Limit", !m_sledInDetection.get());
@@ -286,6 +296,17 @@ public class Robot extends TimedRobot {
   /******************************************************************************************* */
   private double findSpeedJoystick(Hand hand) {
     return (m_driver.getY(hand) * slowfast) * -1;
+  }
+
+  /******************************************************************************************* */
+  // slowfast
+  private void slowFast() {
+    if (m_driver.getAButton()) {
+      slowfast = 1;
+    }
+    if (m_driver.getBButton()) {
+      slowfast = .5;
+    }
   }
 
   // classes
@@ -355,6 +376,7 @@ public class Robot extends TimedRobot {
     lifter();
     extender();
     rampDeploy();
+    fullExtension();
 
     // Set scaling factor for drive
     slowFast();
