@@ -26,12 +26,8 @@ import edu.wpi.first.wpilibj.smartdashboard.*;
 
 public class Robot extends TimedRobot {
   // constants
-  private int k_liftUpLimit = 0;
-  private int K_liftDownLimit = 0;
-  private int k_ballDetection = 0;
-  private int k_lineDetection = 0;
-  private int k_extendOutLimit = 0;
-  private int K_extendInLimit = 0;
+  private int k_ballDetection = 10000;
+  private int k_lineDetection = 10000;
 
   // Maniputlator Buttons
   private int k_ballInButton = 1;
@@ -99,12 +95,6 @@ public class Robot extends TimedRobot {
   private DigitalInput m_liftUpLimit = new DigitalInput(2);
   private DigitalInput m_liftDownLimit = new DigitalInput(3);
 
-  // Using optical sensors as digital inputs
-  private Counter m_liftUpLimitOpticalSwitch = new Counter(6);
-  private Counter m_liftDownOpticalLimit = new Counter(7);
-  private Counter m_ballDetectionOpticalSwitch = new Counter(4);
-  private Counter m_lineDetectionOpticalSwitch = new Counter(5);
-
   private AnalogInput m_ballDetection = new AnalogInput(2);
   private AnalogInput m_lineDetection = new AnalogInput(3);
 
@@ -119,9 +109,8 @@ public class Robot extends TimedRobot {
   private void ballhandle() {
     int move = 1;
 
-    if (m_ballDetectionOpticalSwitch.get() > k_ballDetection) {
+    if (m_ballDetection.getValue() > k_ballDetection) {
       move = 0; // the intake was struck at least once since last loop - so stop the motors
-      m_ballDetectionOpticalSwitch.reset();
     }
     if (m_manipStick.getButton(ButtonType.kTrigger)) {
       m_ballInOut.set(.8 * move);
@@ -139,14 +128,12 @@ public class Robot extends TimedRobot {
     int moveDown = 1;
 
     // see if we have hit travel limits
-    if (m_liftUpLimitOpticalSwitch.get() > k_liftUpLimit) {
+    if (m_liftUpLimit.get() == false) {
       moveUp = 0; // the max extension struck at least once since last loop - so stop the motors
-      m_liftUpLimitOpticalSwitch.reset();
     }
-    if (m_liftDownOpticalLimit.get() > K_liftDownLimit) {
+    if (m_liftDownLimit.get() == false) {
       moveDown = 0; // the minimum extension was struck at least once since last loop - so stop the
       // motors
-      m_liftDownOpticalLimit.reset();
     }
 
     if (m_manipStick.getRawButton(k_liftUpButton)) {
@@ -235,8 +222,8 @@ public class Robot extends TimedRobot {
   /******************************************************************************************* */
   private void driveStationUpdate() {
     // report limit detections
-    SmartDashboard.putNumber("Ball Detection", m_ballDetection.getValue()); // - lastBalldetectionReading);
-    SmartDashboard.putNumber("Line Detection", m_lineDetection.getValue()); // - lastLineDetectionReading);
+    SmartDashboard.putNumber("Ball Detection", m_ballDetection.getValue());
+    SmartDashboard.putNumber("Line Detection", m_lineDetection.getValue());
     // mini loop to detect line and print stuff
     if ((m_lineDetection.getValue() == 1) && (lock == 0)) {
       if ((findSpeedTank(Hand.kRight) < findSpeedTank(Hand.kLeft))
@@ -330,12 +317,6 @@ public class Robot extends TimedRobot {
     // initialize subsystems and sensors
     m_c.setClosedLoopControl(true);
 
-    // Initialize all dio counters
-    m_liftUpLimitOpticalSwitch.reset();
-    m_liftDownOpticalLimit.reset();
-    m_ballDetectionOpticalSwitch.reset();
-    m_lineDetectionOpticalSwitch.reset();
-
     m_ballDetection.setOversampleBits(4);
     m_ballDetection.setAverageBits(2);
 
@@ -383,8 +364,8 @@ public class Robot extends TimedRobot {
 
     // if we are on the line - reset the counter so we can check if we are still on
     // the line
-    if (m_lineDetectionOpticalSwitch.get() > k_lineDetection) {
-      m_lineDetectionOpticalSwitch.reset();
+    if (m_lineDetection.getValue() > k_lineDetection) {
+
     }
 
   }
