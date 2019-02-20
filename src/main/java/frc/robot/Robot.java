@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.Counter;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
@@ -23,6 +24,8 @@ import edu.wpi.first.wpilibj.Joystick.ButtonType;
 import edu.wpi.first.wpilibj.drive.*;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.smartdashboard.*;
+import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.IterativeRobot;
 
 public class Robot extends TimedRobot {
   // constants
@@ -85,8 +88,11 @@ public class Robot extends TimedRobot {
   private Compressor m_c;
   private DoubleSolenoid m_ballGrab = new DoubleSolenoid(k_addressPCM, 6, 7);
   private DoubleSolenoid m_suction = new DoubleSolenoid(k_addressPCM, 2, 3);
-  private DoubleSolenoid m_rampRelease = new DoubleSolenoid(k_addressPCM, 0, 1);
-  private DoubleSolenoid m_fullExtend = new DoubleSolenoid(k_addressPCM, 4, 5);
+  // private DoubleSolenoid m_rampRelease = new DoubleSolenoid(k_addressPCM, 0,
+  // 1);
+  // private DoubleSolenoid m_fullExtend = new DoubleSolenoid(k_addressPCM, 4, 5);
+  private Solenoid m_fullExtend = new Solenoid(k_addressPCM, 5);
+  private Solenoid m_rampRelease = new Solenoid(k_addressPCM, 4);
 
   // detectors
   // switches to detect ball handler extension limits
@@ -198,11 +204,9 @@ public class Robot extends TimedRobot {
   private void rampDeploy() {
 
     if (m_driver.getRawButton(k_rampDeployReleaseButton)) {
-      m_rampRelease.set(DoubleSolenoid.Value.kReverse);
-    } else if (m_driver.getRawButton(k_rampDeployLatchButton)) {
-      m_rampRelease.set(DoubleSolenoid.Value.kForward);
+      m_rampRelease.set(true);
     } else {
-      m_rampRelease.set(DoubleSolenoid.Value.kOff);
+      m_rampRelease.set(false);
     }
   }
 
@@ -211,11 +215,9 @@ public class Robot extends TimedRobot {
   private void fullExtension() {
 
     if (m_driver.getRawButton(k_fullExtendOutButton)) {
-      m_fullExtend.set(DoubleSolenoid.Value.kReverse);
-    } else if (m_driver.getRawButton(k_fullExtendInButton)) {
-      m_fullExtend.set(DoubleSolenoid.Value.kForward);
+      m_fullExtend.set(true);
     } else {
-      m_fullExtend.set(DoubleSolenoid.Value.kOff);
+      m_fullExtend.set(false);
     }
   }
 
@@ -248,8 +250,8 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("Suction", m_suction.get().toString());
 
     // driver buttons
-    SmartDashboard.putString("Ramp Release", m_rampRelease.get().toString());
-    SmartDashboard.putString("Full Extension", m_fullExtend.get().toString());
+    SmartDashboard.putBoolean("Ramp Release", m_rampRelease.get());
+    SmartDashboard.putBoolean("Full Extension", m_fullExtend.get());
 
     SmartDashboard.putBoolean("Lift Up Limit", !m_liftUpLimit.get());
     SmartDashboard.putBoolean("Lift Down Limit", !m_liftDownLimit.get());
@@ -302,6 +304,9 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     // Note this is only used so that the old chassis can be driven by Sparks
     m_myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
+
+    // Camera Server
+    CameraServer.getInstance().startAutomaticCapture();
 
     // create robot components
     m_driver = new XboxController(0);
