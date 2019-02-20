@@ -243,7 +243,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Ball In or Out Speed", m_ballInOut.get());
     SmartDashboard.putNumber("Lifter Speed", m_lifter.get());
     SmartDashboard.putNumber("Sled Speed", m_sled.get());
-    SmartDashboard.putNumber("Ramp Deploy Speed", m_rampDeploy.get());
 
     // manipulator control
     SmartDashboard.putString("Ball Grab", m_ballGrab.get().toString());
