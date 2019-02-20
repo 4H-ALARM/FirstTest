@@ -55,8 +55,8 @@ public class Robot extends TimedRobot {
   private int k_addressDriveFR = 9;
   private int k_addressDriveRR = 8;
   private int k_addressBallInOut = 4;
-  private int k_addressLifter = 3;
-  private int k_addressSled = 10;
+  private int k_addressLifter = 10;
+  private int k_addressSled = 3;
   private int k_addressRampDeploy = 11;
 
   private boolean driveModeTank = false; // Change this to true to select tank steering
