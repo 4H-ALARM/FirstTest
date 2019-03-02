@@ -33,18 +33,18 @@ public class Robot extends TimedRobot {
   private int k_lineDetection = 10000;
 
   // Maniputlator Buttons
-  private int k_ballInButton = 1;
-  private int K_ballOutButton = 2;
-  private int k_ballGrabButton = 3;
-  private int k_liftUpButton = 4;
-  private int k_liftDownButton = 5;
-  private int k_sledOutButton = 6;
-  private int K_sledInButton = 7;
-  private int k_suctionOnButton = 11;
-  private int K_suctionOffButton = 10;
+  private int k_ballInButton = 1; //
+  private int K_ballOutButton = 2; //
+  private int k_ballGrabButton = 3; //
+  private int k_liftUpButton = 4; //
+  private int k_liftDownButton = 5; //
+  private int k_sledOutButton = 6; //
+  private int K_sledInButton = 7; //
+  private int k_suctionOnButton = 11; //
+  private int K_suctionOffButton = 10; //
 
   // Drive Buttons
-  private int k_fullExtendOutButton = 3;
+  private int k_fullExtendOutButton = 3; //
   private int k_fullExtendInButton = 2;
   private int k_rampDeployReleaseButton = 7;
   private int k_rampDeployLatchButton = 8;
@@ -76,6 +76,8 @@ public class Robot extends TimedRobot {
   WPI_TalonSRX m_frontRight = new WPI_TalonSRX(k_addressDriveFR);
   WPI_TalonSRX m_rearRight = new WPI_TalonSRX(k_addressDriveRR);
   SpeedControllerGroup m_right = new SpeedControllerGroup(m_frontRight, m_rearRight);
+  // DifferentialDrive m_4motorDrive = new DifferentialDrive(m_frontLeft,
+  // m_frontRight);
   DifferentialDrive m_4motorDrive = new DifferentialDrive(m_left, m_right);
   // Note this is only used so that the old chassis can be driven by Spark
   private DifferentialDrive m_myRobot;
