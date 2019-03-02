@@ -35,7 +35,8 @@ public class Robot extends TimedRobot {
   // Maniputlator Buttons
   private int k_ballInButton = 1; //
   private int K_ballOutButton = 2; //
-  private int k_ballGrabButton = 3; //
+  private int k_ballGrabButton = 8; //
+  private int k_ballDropButton = 9; //
   private int k_liftUpButton = 4; //
   private int k_liftDownButton = 5; //
   private int k_sledOutButton = 6; //
@@ -196,6 +197,8 @@ public class Robot extends TimedRobot {
 
     if (m_manipStick.getRawButton(k_ballGrabButton)) {
       m_ballGrab.set(DoubleSolenoid.Value.kReverse);
+    } else if (m_manipStick.getRawButton(k_ballDropButton)) {
+      m_suction.set(DoubleSolenoid.Value.kForward);
     } else {
       m_ballGrab.set(DoubleSolenoid.Value.kOff);
     }
