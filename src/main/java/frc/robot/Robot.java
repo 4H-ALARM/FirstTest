@@ -68,20 +68,22 @@ public class Robot extends TimedRobot {
   private WPI_TalonSRX m_ballInOut;
   private WPI_TalonSRX m_lifter;
   private WPI_TalonSRX m_sled;
-  private WPI_TalonSRX m_rampDeploy;
+  // private WPI_TalonSRX m_rampDeploy; // replaced by pnuematic control
 
   // This is the real drive train
   WPI_TalonSRX m_frontLeft = new WPI_TalonSRX(k_addressDriveFL);
-  WPI_TalonSRX m_rearLeft = new WPI_TalonSRX(k_addressDriveRL);
-  SpeedControllerGroup m_left = new SpeedControllerGroup(m_frontLeft, m_rearLeft);
+  // WPI_TalonSRX m_rearLeft = new WPI_TalonSRX(k_addressDriveRL);
+  // SpeedControllerGroup m_left = new SpeedControllerGroup(m_frontLeft,
+  // m_rearLeft);
   WPI_TalonSRX m_frontRight = new WPI_TalonSRX(k_addressDriveFR);
-  WPI_TalonSRX m_rearRight = new WPI_TalonSRX(k_addressDriveRR);
-  SpeedControllerGroup m_right = new SpeedControllerGroup(m_frontRight, m_rearRight);
-  // DifferentialDrive m_4motorDrive = new DifferentialDrive(m_frontLeft,
-  // m_frontRight);
-  DifferentialDrive m_4motorDrive = new DifferentialDrive(m_left, m_right);
+  // WPI_TalonSRX m_rearRight = new WPI_TalonSRX(k_addressDriveRR);
+  // SpeedControllerGroup m_right = new SpeedControllerGroup(m_frontRight,
+  // m_rearRight);
+  DifferentialDrive m_talonDrive = new DifferentialDrive(m_frontLeft, m_frontRight);
+  // DifferentialDrive m_talonDrive = new DifferentialDrive(m_left, m_right);
+
   // Note this is only used so that the old chassis can be driven by Spark
-  private DifferentialDrive m_myRobot;
+  // private DifferentialDrive m_myRobot;
 
   // controlers
   private Joystick m_manipStick;
@@ -307,7 +309,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     // Note this is only used so that the old chassis can be driven by Sparks
-    m_myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
+    // m_myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
 
     // Camera Server
     CameraServer.getInstance().startAutomaticCapture();
@@ -319,7 +321,8 @@ public class Robot extends TimedRobot {
     m_ballInOut = new WPI_TalonSRX(k_addressBallInOut);
     m_sled = new WPI_TalonSRX(k_addressSled);
     m_lifter = new WPI_TalonSRX(k_addressLifter);
-    m_rampDeploy = new WPI_TalonSRX(k_addressRampDeploy);
+    // replaced by pnuematic control
+    // m_rampDeploy = new WPI_TalonSRX(k_addressRampDeploy);
 
     m_c = new Compressor(1);
 
@@ -346,15 +349,16 @@ public class Robot extends TimedRobot {
 
     if (driveModeTank == true) {
       // Note this is only used so that the old chassis can be driven by Sparks
-      m_myRobot.tankDrive(findSpeedTank(Hand.kLeft), findSpeedTank((Hand.kRight)));
+      // m_myRobot.tankDrive(findSpeedTank(Hand.kLeft), findSpeedTank((Hand.kRight)));
       // This is the real drive train
-      m_4motorDrive.tankDrive(findSpeedTank(Hand.kLeft), findSpeedTank((Hand.kRight)));
+      m_talonDrive.tankDrive(findSpeedTank(Hand.kLeft), findSpeedTank((Hand.kRight)));
 
     } else {
       // Note this is only used so that the old chassis can be driven by Sparks
-      m_myRobot.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
+      // m_myRobot.tankDrive(findSpeedJoystick(Hand.kLeft),
+      // findSpeedJoystick((Hand.kRight)));
       // This is the real drive train
-      m_4motorDrive.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
+      m_talonDrive.tankDrive(findSpeedJoystick(Hand.kLeft), findSpeedJoystick((Hand.kRight)));
     }
     // report status to driver
     driveStationUpdate();
