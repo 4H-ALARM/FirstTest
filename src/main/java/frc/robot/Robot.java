@@ -343,7 +343,16 @@ public class Robot extends TimedRobot {
   /******************************************************************************************* */
   @Override
   public void teleopPeriodic() {
+    internalTeleOp();
+  }
 
+  /******************************************************************************************* */
+  @Override
+  public void autonomousPeriodic() {
+    internalTeleOp();
+  }
+
+  public void internalTeleOp() {
     // findSpeedJoystick to use joystick
     // findSpeedTank to use triggers
 
@@ -378,14 +387,6 @@ public class Robot extends TimedRobot {
     // if we are on the line - reset the counter so we can check if we are still on
     // the line
     if (m_lineDetection.getValue() > k_lineDetection) {
-
     }
-
-  }
-
-  /******************************************************************************************* */
-  @Override
-  public void autonomousPeriodic() {
-    // teleopPeriodic();
   }
 }
