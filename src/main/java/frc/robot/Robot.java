@@ -60,6 +60,8 @@ public class Robot extends TimedRobot {
   private int k_addressSled = 3;
   private int k_addressRampDeploy = 11;
 
+  private int extendToggle = 0;
+
   private boolean driveModeTank = false; // Change this to true to select tank steering
 
   private int lock = 0;
@@ -148,9 +150,9 @@ public class Robot extends TimedRobot {
     }
 
     if (m_manipStick.getRawButton(k_liftUpButton)) {
-      m_lifter.set(.8 * moveUp);
+      m_lifter.set(-.8 * moveUp);
     } else if (m_manipStick.getRawButton(k_liftDownButton)) {
-      m_lifter.set(-.8 * moveDown);
+      m_lifter.set(.8 * moveDown);
     } else {
       m_lifter.set(0);
     }
@@ -172,9 +174,9 @@ public class Robot extends TimedRobot {
     }
 
     if (m_manipStick.getRawButton(k_sledOutButton)) {
-      m_sled.set(.8 * moveOut);
+      m_sled.set(-.8 * moveOut);
     } else if (m_manipStick.getRawButton(K_sledInButton)) {
-      m_sled.set(-.8 * moveIn);
+      m_sled.set(.8 * moveIn);
     } else {
       m_sled.set(0);
     }
@@ -184,10 +186,10 @@ public class Robot extends TimedRobot {
   // hatchGrabber
   private void hatchGrabber() {
 
-    if (m_manipStick.getRawButton(k_suctionOnButton)) {
-      m_suction.set(DoubleSolenoid.Value.kReverse);
-    } else if (m_manipStick.getRawButton(K_suctionOffButton)) {
+    if (m_driver.getTriggerAxis(Hand.kLeft) >.75) {
       m_suction.set(DoubleSolenoid.Value.kForward);
+    } else if (m_driver.getTriggerAxis(Hand.kRight) >.75) {
+      m_suction.set(DoubleSolenoid.Value.kReverse);
     } else {
       m_suction.set(DoubleSolenoid.Value.kOff);
     }
@@ -200,7 +202,7 @@ public class Robot extends TimedRobot {
     if (m_manipStick.getRawButton(k_ballGrabButton)) {
       m_ballGrab.set(DoubleSolenoid.Value.kReverse);
     } else if (m_manipStick.getRawButton(k_ballDropButton)) {
-      m_suction.set(DoubleSolenoid.Value.kForward);
+      m_ballGrab.set(DoubleSolenoid.Value.kForward);
     } else {
       m_ballGrab.set(DoubleSolenoid.Value.kOff);
     }
@@ -222,10 +224,18 @@ public class Robot extends TimedRobot {
   private void fullExtension() {
 
     if (m_driver.getRawButton(k_fullExtendOutButton)) {
+      extendToggle = 1;
+    } 
+    if (m_driver.getRawButton(k_fullExtendInButton)) {
+      extendToggle = 0;
+    } 
+
+     if (extendToggle == 1) {
       m_fullExtend.set(true);
-    } else {
+     }
+     if (extendToggle == 0) {
       m_fullExtend.set(false);
-    }
+     }
   }
 
   /******************************************************************************************* */
