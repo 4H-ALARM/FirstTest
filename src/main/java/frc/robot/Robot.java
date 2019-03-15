@@ -9,6 +9,7 @@ package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.can.*;
 
+import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Counter;
@@ -24,7 +25,7 @@ import edu.wpi.first.wpilibj.Joystick.ButtonType;
 import edu.wpi.first.wpilibj.drive.*;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.smartdashboard.*;
-import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.IterativeRobot;
 
 public class Robot extends TimedRobot {
@@ -115,6 +116,9 @@ public class Robot extends TimedRobot {
   double slowfast = 1;
   int slowFastLock = 0;
 
+  private UsbCamera m_driveCamera; // = new UsbCamera("Drive", 0);
+  private UsbCamera m_manipulatorCamera; // = new UsbCamera("Manipulator", 1);
+
   // method definitions //\\//\\//\\//\\
 
   /******************************************************************************************* */
@@ -186,9 +190,9 @@ public class Robot extends TimedRobot {
   // hatchGrabber
   private void hatchGrabber() {
 
-    if (m_driver.getTriggerAxis(Hand.kLeft) >.75) {
+    if (m_driver.getTriggerAxis(Hand.kLeft) > .75) {
       m_suction.set(DoubleSolenoid.Value.kForward);
-    } else if (m_driver.getTriggerAxis(Hand.kRight) >.75) {
+    } else if (m_driver.getTriggerAxis(Hand.kRight) > .75) {
       m_suction.set(DoubleSolenoid.Value.kReverse);
     } else {
       m_suction.set(DoubleSolenoid.Value.kOff);
@@ -225,17 +229,17 @@ public class Robot extends TimedRobot {
 
     if (m_driver.getRawButton(k_fullExtendOutButton)) {
       extendToggle = 1;
-    } 
+    }
     if (m_driver.getRawButton(k_fullExtendInButton)) {
       extendToggle = 0;
-    } 
+    }
 
-     if (extendToggle == 1) {
+    if (extendToggle == 1) {
       m_fullExtend.set(true);
-     }
-     if (extendToggle == 0) {
+    }
+    if (extendToggle == 0) {
       m_fullExtend.set(false);
-     }
+    }
   }
 
   /******************************************************************************************* */
@@ -322,8 +326,10 @@ public class Robot extends TimedRobot {
     // m_myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
 
     // Camera Server
-    CameraServer.getInstance().startAutomaticCapture();
-
+    m_driveCamera = CameraServer.getInstance().startAutomaticCapture("Drive", 0);
+    m_manipulatorCamera = CameraServer.getInstance().startAutomaticCapture("Manipulator", 1);
+    // CameraServer.getInstance().startAutomaticCapture();
+    // CameraServer.getInstance().startAutomaticCapture();
     // create robot components
     m_driver = new XboxController(0);
     m_manipStick = new Joystick(2);
