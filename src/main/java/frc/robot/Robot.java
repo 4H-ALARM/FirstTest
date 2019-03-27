@@ -55,11 +55,11 @@ public class Robot extends TimedRobot {
   private int k_addressDriveFL = 7;
   private int k_addressDriveRL = 6;
   private int k_addressDriveFR = 9;
-  private int k_addressDriveRR = 8;
+  private int k_addressDriveRR = 11;
   private int k_addressBallInOut = 4;
   private int k_addressLifter = 10;
   private int k_addressSled = 3;
-  private int k_addressRampDeploy = 11;
+  private int k_addressRampDeploy = 8;
 
   private int extendToggle = 0;
 
@@ -75,15 +75,14 @@ public class Robot extends TimedRobot {
 
   // This is the real drive train
   WPI_TalonSRX m_frontLeft = new WPI_TalonSRX(k_addressDriveFL);
-  // WPI_TalonSRX m_rearLeft = new WPI_TalonSRX(k_addressDriveRL);
-  // SpeedControllerGroup m_left = new SpeedControllerGroup(m_frontLeft,
-  // m_rearLeft);
+  WPI_TalonSRX m_rearLeft = new WPI_TalonSRX(k_addressDriveRL);
+  SpeedControllerGroup m_left = new SpeedControllerGroup(m_frontLeft, m_rearLeft);
   WPI_TalonSRX m_frontRight = new WPI_TalonSRX(k_addressDriveFR);
-  // WPI_TalonSRX m_rearRight = new WPI_TalonSRX(k_addressDriveRR);
-  // SpeedControllerGroup m_right = new SpeedControllerGroup(m_frontRight,
-  // m_rearRight);
-  DifferentialDrive m_talonDrive = new DifferentialDrive(m_frontLeft, m_frontRight);
-  // DifferentialDrive m_talonDrive = new DifferentialDrive(m_left, m_right);
+  WPI_TalonSRX m_rearRight = new WPI_TalonSRX(k_addressDriveRR);
+  SpeedControllerGroup m_right = new SpeedControllerGroup(m_frontRight, m_rearRight);
+  // DifferentialDrive m_talonDrive = new DifferentialDrive(m_frontLeft,
+  // m_frontRight);
+  DifferentialDrive m_talonDrive = new DifferentialDrive(m_left, m_right);
 
   // Note this is only used so that the old chassis can be driven by Spark
   // private DifferentialDrive m_myRobot;
@@ -326,10 +325,11 @@ public class Robot extends TimedRobot {
     // m_myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
 
     // Camera Server
-    m_driveCamera = CameraServer.getInstance().startAutomaticCapture("Drive", 0);
-    m_manipulatorCamera = CameraServer.getInstance().startAutomaticCapture("Manipulator", 1);
-    // CameraServer.getInstance().startAutomaticCapture();
-    // CameraServer.getInstance().startAutomaticCapture();
+    // m_driveCamera = CameraServer.getInstance().startAutomaticCapture("Drive", 0);
+    // m_manipulatorCamera =
+    // CameraServer.getInstance().startAutomaticCapture("Manipulator", 1);
+    CameraServer.getInstance().startAutomaticCapture();
+    CameraServer.getInstance().startAutomaticCapture();
     // create robot components
     m_driver = new XboxController(0);
     m_manipStick = new Joystick(2);
