@@ -34,10 +34,10 @@ public class Robot extends TimedRobot {
   private int k_lineDetection = 10000;
 
   // Maniputlator Buttons
-  private int k_ballInButton = 1; //
-  private int K_ballOutButton = 2; //
-  private int k_ballGrabButton = 8; //
-  private int k_ballDropButton = 9; //
+  private int k_ballInButton = 0; //
+  private int K_ballOutButton = 1; //
+  private int k_ballGrabButton = 2; //
+  private int k_ballDropButton = 3; //
   private int k_liftUpButton = 4; //
   private int k_liftDownButton = 5; //
   private int k_sledOutButton = 6; //
@@ -192,6 +192,14 @@ public class Robot extends TimedRobot {
     if (m_driver.getTriggerAxis(Hand.kLeft) > .75) {
       m_suction.set(DoubleSolenoid.Value.kForward);
     } else if (m_driver.getTriggerAxis(Hand.kRight) > .75) {
+      m_suction.set(DoubleSolenoid.Value.kReverse);
+    } else {
+      m_suction.set(DoubleSolenoid.Value.kOff);
+    }
+
+    if (m_manipStick.getRawButton(K_suctionOffButton)) {
+      m_suction.set(DoubleSolenoid.Value.kForward);
+    } else if (m_manipStick.getRawButton(k_suctionOnButton)) {
       m_suction.set(DoubleSolenoid.Value.kReverse);
     } else {
       m_suction.set(DoubleSolenoid.Value.kOff);
