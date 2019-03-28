@@ -42,8 +42,8 @@ public class Robot extends TimedRobot {
   private int k_liftDownButton = 2; //
   private int k_sledOutButton = 5; //
   private int K_sledInButton = 6; //
-  private int k_suctionOnButton = 7; //
-  private int K_suctionOffButton = 8; //
+  private int k_suctionOnButton = 3; //
+  private int K_suctionOffButton = 4; //
 
   // Drive Buttons
   private int k_fullExtendOutButton = 3; //
