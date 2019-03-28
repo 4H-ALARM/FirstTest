@@ -114,6 +114,7 @@ public class Robot extends TimedRobot {
   // class data
   double slowfast = 1;
   int slowFastLock = 0;
+  private Boolean k_useJoystickForLifter = true;
 
   private UsbCamera m_driveCamera; // = new UsbCamera("Drive", 0);
   private UsbCamera m_manipulatorCamera; // = new UsbCamera("Manipulator", 1);
@@ -158,6 +159,10 @@ public class Robot extends TimedRobot {
       m_lifter.set(.8 * moveDown);
     } else {
       m_lifter.set(0);
+    }
+
+    if (k_useJoystickForLifter == true) {
+      m_lifter.set(-1 * (m_manipStick.getY()));
     }
   }
 
