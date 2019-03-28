@@ -7,6 +7,8 @@
 
 package frc.robot;
 
+import javax.lang.model.util.ElementScanner6;
+
 import com.ctre.phoenix.motorcontrol.can.*;
 
 import edu.wpi.cscore.UsbCamera;
@@ -143,6 +145,7 @@ public class Robot extends TimedRobot {
   private void lifter() {
     int moveUp = 1;
     int moveDown = 1;
+    double y = 0;
 
     // see if we have hit travel limits
     if (m_liftUpLimit.get() == false) {
@@ -161,8 +164,15 @@ public class Robot extends TimedRobot {
       m_lifter.set(0);
     }
 
+    y = m_manipStick.getY();
+    if ((y > 0.01 | y < -0.01)) {
+      k_useJoystickForLifter = true;
+    } else {
+      k_useJoystickForLifter = false;
+    }
+
     if (k_useJoystickForLifter == true) {
-      m_lifter.set(-1 * (m_manipStick.getY()));
+      m_lifter.set(-1 * y);
     }
   }
 
