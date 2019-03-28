@@ -34,16 +34,16 @@ public class Robot extends TimedRobot {
   private int k_lineDetection = 10000;
 
   // Maniputlator Buttons
-  private int k_ballInButton = 0; //
-  private int K_ballOutButton = 1; //
-  private int k_ballGrabButton = 2; //
-  private int k_ballDropButton = 3; //
-  private int k_liftUpButton = 4; //
-  private int k_liftDownButton = 5; //
-  private int k_sledOutButton = 6; //
-  private int K_sledInButton = 7; //
-  private int k_suctionOnButton = 11; //
-  private int K_suctionOffButton = 10; //
+  private int k_ballInButton = 11; //
+  private int K_ballOutButton = 12; //
+  private int k_ballGrabButton = 7; //
+  private int k_ballDropButton = 8; //
+  private int k_liftUpButton = 1; //
+  private int k_liftDownButton = 2; //
+  private int k_sledOutButton = 5; //
+  private int K_sledInButton = 6; //
+  private int k_suctionOnButton = 7; //
+  private int K_suctionOffButton = 8; //
 
   // Drive Buttons
   private int k_fullExtendOutButton = 3; //
@@ -128,9 +128,9 @@ public class Robot extends TimedRobot {
     if (m_ballDetection.getValue() > k_ballDetection) {
       move = 0; // the intake was struck at least once since last loop - so stop the motors
     }
-    if (m_manipStick.getButton(ButtonType.kTrigger)) {
+    if (m_manipStick.getRawButton(k_ballInButton)) {
       m_ballInOut.set(.8 * move);
-    } else if (m_manipStick.getButton(ButtonType.kTop)) {
+    } else if (m_manipStick.getRawButton(K_ballOutButton)) {
       m_ballInOut.set(-.8);
     } else {
       m_ballInOut.set(0);
